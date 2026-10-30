@@ -1,0 +1,85 @@
+<html>
+<head>
+<title>UsuarioService.java</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #bcbec4;}
+.s1 { color: #cf8e6d;}
+.s2 { color: #bcbec4;}
+.s3 { color: #6aab73;}
+.s4 { color: #7a7e85;}
+</style>
+</head>
+<body bgcolor="#191a1c">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+UsuarioService.java</font>
+</center></td></tr></table>
+<pre>
+<span class="s1">package </span><span class="s0">com</span><span class="s2">.</span><span class="s0">dev</span><span class="s2">.</span><span class="s0">kallopolli</span><span class="s2">.</span><span class="s0">mequijunto</span><span class="s2">.</span><span class="s0">service</span><span class="s2">;</span>
+
+<span class="s1">import </span><span class="s0">com</span><span class="s2">.</span><span class="s0">dev</span><span class="s2">.</span><span class="s0">kallopolli</span><span class="s2">.</span><span class="s0">mequijunto</span><span class="s2">.</span><span class="s0">entity</span><span class="s2">.</span><span class="s0">Usuario</span><span class="s2">;</span>
+<span class="s1">import </span><span class="s0">com</span><span class="s2">.</span><span class="s0">dev</span><span class="s2">.</span><span class="s0">kallopolli</span><span class="s2">.</span><span class="s0">mequijunto</span><span class="s2">.</span><span class="s0">repository</span><span class="s2">.</span><span class="s0">UsuarioRepository</span><span class="s2">;</span>
+
+<span class="s1">import </span><span class="s0">jakarta</span><span class="s2">.</span><span class="s0">persistence</span><span class="s2">.</span><span class="s0">EntityNotFoundException</span><span class="s2">;</span>
+<span class="s1">import </span><span class="s0">lombok</span><span class="s2">.</span><span class="s0">RequiredArgsConstructor</span><span class="s2">;</span>
+
+<span class="s1">import </span><span class="s0">org</span><span class="s2">.</span><span class="s0">springframework</span><span class="s2">.</span><span class="s0">stereotype</span><span class="s2">.</span><span class="s0">Service</span><span class="s2">;</span>
+<span class="s1">import </span><span class="s0">org</span><span class="s2">.</span><span class="s0">springframework</span><span class="s2">.</span><span class="s0">transaction</span><span class="s2">.</span><span class="s0">annotation</span><span class="s2">.</span><span class="s0">Transactional</span><span class="s2">;</span>
+
+<span class="s1">import </span><span class="s0">java</span><span class="s2">.</span><span class="s0">util</span><span class="s2">.</span><span class="s0">List</span><span class="s2">;</span>
+
+<span class="s0">@Service</span>
+<span class="s0">@RequiredArgsConstructor</span>
+<span class="s1">public class </span><span class="s0">UsuarioService </span><span class="s2">{</span>
+
+    <span class="s1">private final </span><span class="s0">UsuarioRepository usuarioRepository</span><span class="s2">;</span>
+
+    <span class="s0">@Transactional</span><span class="s2">(</span><span class="s0">readOnly </span><span class="s2">= </span><span class="s1">true</span><span class="s2">)</span>
+    <span class="s1">public </span><span class="s0">List</span><span class="s2">&lt;</span><span class="s0">Usuario</span><span class="s2">&gt; </span><span class="s0">listarTodos</span><span class="s2">() {</span>
+        <span class="s1">return </span><span class="s0">usuarioRepository</span><span class="s2">.</span><span class="s0">findAll</span><span class="s2">();</span>
+    <span class="s2">}</span>
+
+    <span class="s0">@Transactional</span><span class="s2">(</span><span class="s0">readOnly </span><span class="s2">= </span><span class="s1">true</span><span class="s2">)</span>
+    <span class="s1">public </span><span class="s0">Usuario buscarPorId</span><span class="s2">(</span><span class="s0">Long id</span><span class="s2">) {</span>
+        <span class="s1">return </span><span class="s0">usuarioRepository</span><span class="s2">.</span><span class="s0">findById</span><span class="s2">(</span><span class="s0">id</span><span class="s2">)</span>
+                <span class="s2">.</span><span class="s0">orElseThrow</span><span class="s2">(() </span><span class="s0">-&gt;</span>
+                        <span class="s1">new </span><span class="s0">EntityNotFoundException</span><span class="s2">(</span>
+                                <span class="s3">&quot;Usuário não encontrado: &quot; </span><span class="s2">+ </span><span class="s0">id</span>
+                        <span class="s2">));</span>
+    <span class="s2">}</span>
+
+    <span class="s0">@Transactional</span>
+    <span class="s1">public </span><span class="s0">Usuario salvar</span><span class="s2">(</span><span class="s0">Usuario usuario</span><span class="s2">) {</span>
+        <span class="s1">return </span><span class="s0">usuarioRepository</span><span class="s2">.</span><span class="s0">save</span><span class="s2">(</span><span class="s0">usuario</span><span class="s2">);</span>
+    <span class="s2">}</span>
+
+    <span class="s0">@Transactional</span>
+    <span class="s1">public </span><span class="s0">Usuario atualizar</span><span class="s2">(</span><span class="s0">Long id</span><span class="s2">, </span><span class="s0">Usuario dados</span><span class="s2">) {</span>
+        <span class="s0">Usuario usuario </span><span class="s2">= </span><span class="s0">buscarPorId</span><span class="s2">(</span><span class="s0">id</span><span class="s2">);</span>
+
+        <span class="s0">usuario</span><span class="s2">.</span><span class="s0">setNome</span><span class="s2">(</span><span class="s0">dados</span><span class="s2">.</span><span class="s0">getNome</span><span class="s2">());</span>
+        <span class="s0">usuario</span><span class="s2">.</span><span class="s0">setTelefone</span><span class="s2">(</span><span class="s0">dados</span><span class="s2">.</span><span class="s0">getTelefone</span><span class="s2">());</span>
+        <span class="s0">usuario</span><span class="s2">.</span><span class="s0">setCargo</span><span class="s2">(</span><span class="s0">dados</span><span class="s2">.</span><span class="s0">getCargo</span><span class="s2">());</span>
+        <span class="s0">usuario</span><span class="s2">.</span><span class="s0">setAtivo</span><span class="s2">(</span><span class="s0">dados</span><span class="s2">.</span><span class="s0">getAtivo</span><span class="s2">());</span>
+        <span class="s0">usuario</span><span class="s2">.</span><span class="s0">setIdade</span><span class="s2">(</span><span class="s0">dados</span><span class="s2">.</span><span class="s0">getIdade</span><span class="s2">());</span>
+        <span class="s0">usuario</span><span class="s2">.</span><span class="s0">setGenero</span><span class="s2">(</span><span class="s0">dados</span><span class="s2">.</span><span class="s0">getGenero</span><span class="s2">());</span>
+        <span class="s0">usuario</span><span class="s2">.</span><span class="s0">setDataIngresso</span><span class="s2">(</span><span class="s0">dados</span><span class="s2">.</span><span class="s0">getDataIngresso</span><span class="s2">());</span>
+        <span class="s0">usuario</span><span class="s2">.</span><span class="s0">setEmail</span><span class="s2">(</span><span class="s0">dados</span><span class="s2">.</span><span class="s0">getEmail</span><span class="s2">());</span>
+
+        <span class="s4">// Não atualizar senhaHash por este método.</span>
+        <span class="s4">// A alteração de senha deve usar um fluxo seguro de hash.</span>
+
+        <span class="s1">return </span><span class="s0">usuarioRepository</span><span class="s2">.</span><span class="s0">save</span><span class="s2">(</span><span class="s0">usuario</span><span class="s2">);</span>
+    <span class="s2">}</span>
+
+    <span class="s0">@Transactional</span>
+    <span class="s1">public void </span><span class="s0">excluir</span><span class="s2">(</span><span class="s0">Long id</span><span class="s2">) {</span>
+        <span class="s0">Usuario usuario </span><span class="s2">= </span><span class="s0">buscarPorId</span><span class="s2">(</span><span class="s0">id</span><span class="s2">);</span>
+        <span class="s0">usuarioRepository</span><span class="s2">.</span><span class="s0">delete</span><span class="s2">(</span><span class="s0">usuario</span><span class="s2">);</span>
+    <span class="s2">}</span>
+<span class="s2">}</span>
+</pre>
+</body>
+</html>

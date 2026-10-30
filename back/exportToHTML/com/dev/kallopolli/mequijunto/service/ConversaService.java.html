@@ -1,0 +1,114 @@
+<html>
+<head>
+<title>ConversaService.java</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cf8e6d;}
+.s1 { color: #bcbec4;}
+.s2 { color: #bcbec4;}
+.s3 { color: #6aab73;}
+</style>
+</head>
+<body bgcolor="#191a1c">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+ConversaService.java</font>
+</center></td></tr></table>
+<pre><span class="s0">package </span><span class="s1">com</span><span class="s2">.</span><span class="s1">dev</span><span class="s2">.</span><span class="s1">kallopolli</span><span class="s2">.</span><span class="s1">mequijunto</span><span class="s2">.</span><span class="s1">service</span><span class="s2">;</span>
+
+<span class="s0">import </span><span class="s1">com</span><span class="s2">.</span><span class="s1">dev</span><span class="s2">.</span><span class="s1">kallopolli</span><span class="s2">.</span><span class="s1">mequijunto</span><span class="s2">.</span><span class="s1">entity</span><span class="s2">.</span><span class="s1">Conversa</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">com</span><span class="s2">.</span><span class="s1">dev</span><span class="s2">.</span><span class="s1">kallopolli</span><span class="s2">.</span><span class="s1">mequijunto</span><span class="s2">.</span><span class="s1">entity</span><span class="s2">.</span><span class="s1">Mensagem</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">com</span><span class="s2">.</span><span class="s1">dev</span><span class="s2">.</span><span class="s1">kallopolli</span><span class="s2">.</span><span class="s1">mequijunto</span><span class="s2">.</span><span class="s1">repository</span><span class="s2">.</span><span class="s1">ConversaRepository</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">com</span><span class="s2">.</span><span class="s1">dev</span><span class="s2">.</span><span class="s1">kallopolli</span><span class="s2">.</span><span class="s1">mequijunto</span><span class="s2">.</span><span class="s1">repository</span><span class="s2">.</span><span class="s1">MensagemRepository</span><span class="s2">;</span>
+
+<span class="s0">import </span><span class="s1">jakarta</span><span class="s2">.</span><span class="s1">persistence</span><span class="s2">.</span><span class="s1">EntityNotFoundException</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">lombok</span><span class="s2">.</span><span class="s1">RequiredArgsConstructor</span><span class="s2">;</span>
+
+<span class="s0">import </span><span class="s1">org</span><span class="s2">.</span><span class="s1">springframework</span><span class="s2">.</span><span class="s1">stereotype</span><span class="s2">.</span><span class="s1">Service</span><span class="s2">;</span>
+<span class="s0">import </span><span class="s1">org</span><span class="s2">.</span><span class="s1">springframework</span><span class="s2">.</span><span class="s1">transaction</span><span class="s2">.</span><span class="s1">annotation</span><span class="s2">.</span><span class="s1">Transactional</span><span class="s2">;</span>
+
+<span class="s0">import </span><span class="s1">java</span><span class="s2">.</span><span class="s1">util</span><span class="s2">.</span><span class="s1">List</span><span class="s2">;</span>
+
+<span class="s1">@Service</span>
+<span class="s1">@RequiredArgsConstructor</span>
+<span class="s0">public class </span><span class="s1">MensagemService </span><span class="s2">{</span>
+
+    <span class="s0">private final </span><span class="s1">MensagemRepository mensagemRepository</span><span class="s2">;</span>
+
+    <span class="s1">@Transactional</span><span class="s2">(</span><span class="s1">readOnly </span><span class="s2">= </span><span class="s0">true</span><span class="s2">)</span>
+    <span class="s0">public </span><span class="s1">List</span><span class="s2">&lt;</span><span class="s1">Mensagem</span><span class="s2">&gt; </span><span class="s1">listarTodas</span><span class="s2">() {</span>
+        <span class="s0">return </span><span class="s1">mensagemRepository</span><span class="s2">.</span><span class="s1">findAll</span><span class="s2">();</span>
+    <span class="s2">}</span>
+
+    <span class="s1">@Transactional</span><span class="s2">(</span><span class="s1">readOnly </span><span class="s2">= </span><span class="s0">true</span><span class="s2">)</span>
+    <span class="s0">public </span><span class="s1">Mensagem buscarPorId</span><span class="s2">(</span><span class="s1">Long id</span><span class="s2">) {</span>
+        <span class="s0">return </span><span class="s1">mensagemRepository</span><span class="s2">.</span><span class="s1">findById</span><span class="s2">(</span><span class="s1">id</span><span class="s2">)</span>
+                <span class="s2">.</span><span class="s1">orElseThrow</span><span class="s2">(() </span><span class="s1">-&gt;</span>
+                        <span class="s0">new </span><span class="s1">EntityNotFoundException</span><span class="s2">(</span>
+                                <span class="s3">&quot;Mensagem não encontrada: &quot; </span><span class="s2">+ </span><span class="s1">id</span>
+                        <span class="s2">));</span>
+    <span class="s2">}</span>
+
+    <span class="s1">@Transactional</span><span class="s2">(</span><span class="s1">readOnly </span><span class="s2">= </span><span class="s0">true</span><span class="s2">)</span>
+    <span class="s0">public </span><span class="s1">List</span><span class="s2">&lt;</span><span class="s1">Mensagem</span><span class="s2">&gt; </span><span class="s1">listarPorConversa</span><span class="s2">(</span><span class="s1">Long conversaId</span><span class="s2">) {</span>
+        <span class="s0">if </span><span class="s2">(!</span><span class="s1">conversaRepository</span><span class="s2">.</span><span class="s1">existsById</span><span class="s2">(</span><span class="s1">conversaId</span><span class="s2">)) {</span>
+            <span class="s0">throw new </span><span class="s1">EntityNotFoundException</span><span class="s2">(</span>
+                    <span class="s3">&quot;Conversa não encontrada: &quot; </span><span class="s2">+ </span><span class="s1">conversaId</span>
+            <span class="s2">);</span>
+        <span class="s2">}</span>
+
+        <span class="s0">return </span><span class="s1">mensagemRepository</span>
+                <span class="s2">.</span><span class="s1">findByConversa_IdOrderByCriadoEmAsc</span><span class="s2">(</span><span class="s1">conversaId</span><span class="s2">);</span>
+    <span class="s2">}</span>
+
+    <span class="s1">@Transactional</span>
+    <span class="s0">public </span><span class="s1">Mensagem salvar</span><span class="s2">(</span><span class="s1">Mensagem mensagem</span><span class="s2">, </span><span class="s1">Long conversaId</span><span class="s2">) {</span>
+        <span class="s1">Conversa conversa </span><span class="s2">= </span><span class="s1">conversaRepository</span><span class="s2">.</span><span class="s1">findById</span><span class="s2">(</span><span class="s1">conversaId</span><span class="s2">)</span>
+                <span class="s2">.</span><span class="s1">orElseThrow</span><span class="s2">(() </span><span class="s1">-&gt;</span>
+                        <span class="s0">new </span><span class="s1">EntityNotFoundException</span><span class="s2">(</span>
+                                <span class="s3">&quot;Conversa não encontrada: &quot; </span><span class="s2">+ </span><span class="s1">conversaId</span>
+                        <span class="s2">));</span>
+
+        <span class="s1">mensagem</span><span class="s2">.</span><span class="s1">setConversa</span><span class="s2">(</span><span class="s1">conversa</span><span class="s2">);</span>
+
+        <span class="s0">return </span><span class="s1">mensagemRepository</span><span class="s2">.</span><span class="s1">save</span><span class="s2">(</span><span class="s1">mensagem</span><span class="s2">);</span>
+    <span class="s2">}</span>
+
+    <span class="s1">@Transactional</span>
+    <span class="s0">public </span><span class="s1">Mensagem atualizar</span><span class="s2">(</span>
+            <span class="s1">Long id</span><span class="s2">,</span>
+            <span class="s1">Mensagem dados</span><span class="s2">,</span>
+            <span class="s1">Long conversaId</span>
+    <span class="s2">) {</span>
+        <span class="s1">Mensagem mensagem </span><span class="s2">= </span><span class="s1">buscarPorId</span><span class="s2">(</span><span class="s1">id</span><span class="s2">);</span>
+
+        <span class="s1">Conversa conversa </span><span class="s2">= </span><span class="s1">conversaRepository</span><span class="s2">.</span><span class="s1">findById</span><span class="s2">(</span><span class="s1">conversaId</span><span class="s2">)</span>
+                <span class="s2">.</span><span class="s1">orElseThrow</span><span class="s2">(() </span><span class="s1">-&gt;</span>
+                        <span class="s0">new </span><span class="s1">EntityNotFoundException</span><span class="s2">(</span>
+                                <span class="s3">&quot;Conversa não encontrada: &quot; </span><span class="s2">+ </span><span class="s1">conversaId</span>
+                        <span class="s2">));</span>
+
+        <span class="s1">mensagem</span><span class="s2">.</span><span class="s1">setConversa</span><span class="s2">(</span><span class="s1">conversa</span><span class="s2">);</span>
+        <span class="s1">mensagem</span><span class="s2">.</span><span class="s1">setOrigem</span><span class="s2">(</span><span class="s1">dados</span><span class="s2">.</span><span class="s1">getOrigem</span><span class="s2">());</span>
+        <span class="s1">mensagem</span><span class="s2">.</span><span class="s1">setTipo</span><span class="s2">(</span><span class="s1">dados</span><span class="s2">.</span><span class="s1">getTipo</span><span class="s2">());</span>
+        <span class="s1">mensagem</span><span class="s2">.</span><span class="s1">setConteudo</span><span class="s2">(</span><span class="s1">dados</span><span class="s2">.</span><span class="s1">getConteudo</span><span class="s2">());</span>
+        <span class="s1">mensagem</span><span class="s2">.</span><span class="s1">setAudioUrl</span><span class="s2">(</span><span class="s1">dados</span><span class="s2">.</span><span class="s1">getAudioUrl</span><span class="s2">());</span>
+        <span class="s1">mensagem</span><span class="s2">.</span><span class="s1">setTranscricao</span><span class="s2">(</span><span class="s1">dados</span><span class="s2">.</span><span class="s1">getTranscricao</span><span class="s2">());</span>
+        <span class="s1">mensagem</span><span class="s2">.</span><span class="s1">setNotaDia</span><span class="s2">(</span><span class="s1">dados</span><span class="s2">.</span><span class="s1">getNotaDia</span><span class="s2">());</span>
+        <span class="s1">mensagem</span><span class="s2">.</span><span class="s1">setAnaliseIa</span><span class="s2">(</span><span class="s1">dados</span><span class="s2">.</span><span class="s1">getAnaliseIa</span><span class="s2">());</span>
+        <span class="s1">mensagem</span><span class="s2">.</span><span class="s1">setNivelRisco</span><span class="s2">(</span><span class="s1">dados</span><span class="s2">.</span><span class="s1">getNivelRisco</span><span class="s2">());</span>
+        <span class="s1">mensagem</span><span class="s2">.</span><span class="s1">setStatusAlerta</span><span class="s2">(</span><span class="s1">dados</span><span class="s2">.</span><span class="s1">getStatusAlerta</span><span class="s2">());</span>
+
+        <span class="s0">return </span><span class="s1">mensagemRepository</span><span class="s2">.</span><span class="s1">save</span><span class="s2">(</span><span class="s1">mensagem</span><span class="s2">);</span>
+    <span class="s2">}</span>
+
+    <span class="s1">@Transactional</span>
+    <span class="s0">public void </span><span class="s1">excluir</span><span class="s2">(</span><span class="s1">Long id</span><span class="s2">) {</span>
+        <span class="s1">Mensagem mensagem </span><span class="s2">= </span><span class="s1">buscarPorId</span><span class="s2">(</span><span class="s1">id</span><span class="s2">);</span>
+        <span class="s1">mensagemRepository</span><span class="s2">.</span><span class="s1">delete</span><span class="s2">(</span><span class="s1">mensagem</span><span class="s2">);</span>
+    <span class="s2">}</span>
+<span class="s2">}</span>
+</pre>
+</body>
+</html>
