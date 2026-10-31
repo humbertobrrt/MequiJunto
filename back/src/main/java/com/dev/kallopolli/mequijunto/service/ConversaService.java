@@ -1,17 +1,16 @@
-
 package com.dev.kallopolli.mequijunto.service;
 
+import com.dev.kallopolli.mequijunto.dto.ConversaResponse;
 import com.dev.kallopolli.mequijunto.entity.Conversa;
 import com.dev.kallopolli.mequijunto.entity.Usuario;
 import com.dev.kallopolli.mequijunto.repository.ConversaRepository;
 import com.dev.kallopolli.mequijunto.repository.UsuarioRepository;
-
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import org.springframework.web.server.ResponseStatusException;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -22,69 +21,34 @@ public class ConversaService {
     private final UsuarioRepository usuarioRepository;
 
     @Transactional(readOnly = true)
-    public List<Conversa> listarTodas() {
-        return conversaRepository.findAll();
-    }
-
-    @Transactional(readOnly = true)
-    public Conversa buscarPorId(Long id) {
-        return conversaRepository.findById(id)
-                .orElseThrow(() ->
-                        new EntityNotFoundException(
-                                "Conversa não encontrada: " + id
-                        ));
-    }
-
-    @Transactional(readOnly = true)
-    public List<Conversa> listarPorUsuario(Long usuarioId) {
-        if (!usuarioRepository.existsById(usuarioId)) {
-            throw new EntityNotFoundException(
-                    "Usuário não encontrado: " + usuarioId
-            );
+    public List<ConversaResponse> listar(Long usuarioId) {
+        List<Conversa> conversas;
+        if (usuarioId == null) {
+            conversas = conversaRepository.findAllByOrderByInicioDesc();
+        } else {
+            conversas = conversaRepository.findByUsuario_IdOrderByInicioDesc(usuarioId);
         }
-
-        return conversaRepository.findByUsuario_Id(usuarioId);
+        return conversas.stream().map(this::paraResponse).toList();
     }
 
     @Transactional
-    public Conversa salvar(Conversa conversa, Long usuarioId) {
-        Usuario usuario = usuarioRepository.findById(usuarioId)
-                .orElseThrow(() ->
-                        new EntityNotFoundException(
-                                "Usuário não encontrado: " + usuarioId
-                        ));
-
-        conversa.setUsuario(usuario);
-
-        return conversaRepository.save(conversa);
+    public Conversa obterOuCriarConversaAtiva(Long usuarioId) {
+        return conversaRepository.findFirstByUsuario_IdAndFimIsNullOrderByInicioDesc(usuarioId)
+                .orElseGet(() -> {
+                    Usuario usuario = usuarioRepository.findById(usuarioId)
+                            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Colaborador não encontrado."));
+                    Conversa conversa = new Conversa();
+                    conversa.setUsuario(usuario);
+                    conversa.setInicio(LocalDateTime.now());
+                    conversa.setStatus("ATIVA");
+                    return conversaRepository.save(conversa);
+                });
     }
 
-    @Transactional
-    public Conversa atualizar(
-            Long id,
-            Conversa dados,
-            Long usuarioId
-    ) {
-        Conversa conversa = buscarPorId(id);
-
-        Usuario usuario = usuarioRepository.findById(usuarioId)
-                .orElseThrow(() ->
-                        new EntityNotFoundException(
-                                "Usuário não encontrado: " + usuarioId
-                        ));
-
-        conversa.setUsuario(usuario);
-        conversa.setInicio(dados.getInicio());
-        conversa.setFim(dados.getFim());
-        conversa.setStatus(dados.getStatus());
-        conversa.setResumo(dados.getResumo());
-
-        return conversaRepository.save(conversa);
-    }
-
-    @Transactional
-    public void excluir(Long id) {
-        Conversa conversa = buscarPorId(id);
-        conversaRepository.delete(conversa);
+    private ConversaResponse paraResponse(Conversa conversa) {
+        return new ConversaResponse(
+                conversa.getId(), conversa.getUsuario().getId(), conversa.getUsuario().getNome(),
+                conversa.getInicio(), conversa.getFim(), conversa.getStatus(), conversa.getResumo()
+        );
     }
 }

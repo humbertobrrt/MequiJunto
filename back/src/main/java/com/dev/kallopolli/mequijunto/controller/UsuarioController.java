@@ -1,59 +1,53 @@
-
 package com.dev.kallopolli.mequijunto.controller;
 
-import com.dev.kallopolli.mequijunto.entity.Usuario;
+import com.dev.kallopolli.mequijunto.dto.AtualizarColaboradorRequest;
+import com.dev.kallopolli.mequijunto.dto.CadastroColaboradorRequest;
+import com.dev.kallopolli.mequijunto.dto.UsuarioResponse;
 import com.dev.kallopolli.mequijunto.service.UsuarioService;
-
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/usuarios")
 @RequiredArgsConstructor
+@PreAuthorize("hasAnyRole('RH', 'GERENCIA')")
+@SecurityRequirement(name = "bearerAuth")
 public class UsuarioController {
 
     private final UsuarioService usuarioService;
 
-    // Listar todos os usuários
     @GetMapping
-    public ResponseEntity<List<Usuario>> listarTodos() {
-        return ResponseEntity.ok(usuarioService.listarTodos());
+    public ResponseEntity<List<UsuarioResponse>> listar() {
+        return ResponseEntity.ok(usuarioService.listar());
     }
 
-    // Buscar usuário por ID
     @GetMapping("/{id}")
-    public ResponseEntity<Usuario> buscarPorId(@PathVariable Long id) {
-        return ResponseEntity.ok(usuarioService.buscarPorId(id));
+    public ResponseEntity<UsuarioResponse> buscar(@PathVariable Long id) {
+        return ResponseEntity.ok(usuarioService.buscar(id));
     }
 
-    // Cadastrar usuário
     @PostMapping
-    public ResponseEntity<Usuario> salvar(@RequestBody Usuario usuario) {
-        Usuario novoUsuario = usuarioService.salvar(usuario);
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(novoUsuario);
+    public ResponseEntity<UsuarioResponse> cadastrar(@RequestBody @Valid CadastroColaboradorRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(usuarioService.cadastrar(request));
     }
 
-    // Atualizar usuário
     @PutMapping("/{id}")
-    public ResponseEntity<Usuario> atualizar(
+    public ResponseEntity<UsuarioResponse> atualizar(
             @PathVariable Long id,
-            @RequestBody Usuario usuario) {
-
-        return ResponseEntity.ok(usuarioService.atualizar(id, usuario));
+            @RequestBody @Valid AtualizarColaboradorRequest request
+    ) {
+        return ResponseEntity.ok(usuarioService.atualizar(id, request));
     }
 
-    // Excluir usuário
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> excluir(@PathVariable Long id) {
-        usuarioService.excluir(id);
-
+    @PatchMapping("/{id}/desativar")
+    public ResponseEntity<Void> desativar(@PathVariable Long id) {
+        usuarioService.desativar(id);
         return ResponseEntity.noContent().build();
     }
 }
-

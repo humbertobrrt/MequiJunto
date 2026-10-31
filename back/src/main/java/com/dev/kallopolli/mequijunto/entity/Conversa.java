@@ -1,21 +1,9 @@
-
 package com.dev.kallopolli.mequijunto.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.Table;
-
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
 import java.time.LocalDateTime;
 
 @Entity
@@ -33,27 +21,16 @@ public class Conversa {
     @JoinColumn(name = "usuario_id", nullable = false)
     private Usuario usuario;
 
-    @Column(name = "inicio")
     private LocalDateTime inicio;
-
-    @Column(name = "fim")
     private LocalDateTime fim;
-
-    @Column(name = "status")
     private String status;
 
-    @Column(name = "resumo", columnDefinition = "text")
+    @Column(columnDefinition = "text")
     private String resumo;
 
     @PrePersist
     public void prePersist() {
-        if (inicio == null) {
-            inicio = LocalDateTime.now();
-        }
-
-        if (status == null) {
-            status = "ATIVA";
-        }
+        if (inicio == null) inicio = LocalDateTime.now();
+        if (status == null) status = "ATIVA";
     }
 }
-

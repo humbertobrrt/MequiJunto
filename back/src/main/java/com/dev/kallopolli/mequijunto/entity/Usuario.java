@@ -1,18 +1,9 @@
-
 package com.dev.kallopolli.mequijunto.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.Table;
-
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
 import java.time.LocalDate;
 
 @Entity
@@ -26,38 +17,23 @@ public class Usuario {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "nome")
+    @Column(nullable = false)
     private String nome;
 
-    @Column(name = "telefone")
     private String telefone;
-
-    @Column(name = "cargo")
     private String cargo;
-
-    @Column(name = "ativo")
     private Boolean ativo = true;
-
-    @Column(name = "idade")
     private Integer idade;
-
-    @Column(name = "genero")
     private String genero;
 
     @Column(name = "data_ingresso")
     private LocalDate dataIngresso;
 
-    @Column(name = "email")
     private String email;
 
     @Column(name = "senha_hash", columnDefinition = "text")
     private String senhaHash;
 
-    @PrePersist
-    public void prePersist() {
-        if (ativo == null) {
-            ativo = true;
-        }
-    }
+    @Column(name = "perfil_acesso", length = 20)
+    private String perfilAcesso = "COLABORADOR";
 }
-

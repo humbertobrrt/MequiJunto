@@ -1,21 +1,9 @@
-
 package com.dev.kallopolli.mequijunto.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.Table;
-
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
 import java.time.LocalDateTime;
 
 @Entity
@@ -29,23 +17,21 @@ public class Mensagem {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // O banco atual do projeto utiliza a coluna conversas_id.
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "conversas_id", nullable = false)
     private Conversa conversa;
 
-    @Column(name = "origem")
     private String origem;
-
-    @Column(name = "tipo")
     private String tipo;
 
-    @Column(name = "conteudo", columnDefinition = "text")
+    @Column(columnDefinition = "text")
     private String conteudo;
 
     @Column(name = "audio_url", columnDefinition = "text")
     private String audioUrl;
 
-    @Column(name = "transcricao", columnDefinition = "text")
+    @Column(columnDefinition = "text")
     private String transcricao;
 
     @Column(name = "criado_em")
@@ -63,10 +49,24 @@ public class Mensagem {
     @Column(name = "status_alerta")
     private String statusAlerta;
 
+    @Column(name = "tipo_sinal")
+    private String tipoSinal;
+
+    @Column(name = "destino_alerta")
+    private String destinoAlerta;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "responsavel_id")
+    private Usuario responsavel;
+
+    @Column(name = "retorno_em")
+    private LocalDateTime retornoEm;
+
+    @Column(name = "observacao_retorno", columnDefinition = "text")
+    private String observacaoRetorno;
+
     @PrePersist
     public void prePersist() {
-        if (criadoEm == null) {
-            criadoEm = LocalDateTime.now();
-        }
+        if (criadoEm == null) criadoEm = LocalDateTime.now();
     }
 }
