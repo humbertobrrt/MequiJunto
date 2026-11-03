@@ -1,0 +1,1118 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alertas - MéquiJunto</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #eeeeee;
+            color: #000;
+            min-height: 100vh;
+            display: flex;
+        }
+
+        a:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible,
+        textarea:focus-visible, [tabindex]:focus-visible {
+            outline: 3px solid #1a73e8;
+            outline-offset: 2px;
+        }
+
+        /* ---------- Sidebar ---------- */
+        .sidebar {
+            width: 200px;
+            flex-shrink: 0;
+            background-color: #da291c;
+            padding: 36px 20px 24px 10px;
+            display: flex;
+            flex-direction: column;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            justify-content: center;
+            margin: 0 0 56px 10px;
+        }
+
+        .sidebar-logo img { width: 90px; height: auto; }
+
+        .menu {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .menu a,
+        .menu button {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            padding: 9px 14px 9px 36px;
+            border: none;
+            background: transparent;
+            border-radius: 8px;
+            color: #fff;
+            font-family: 'DM Sans', 'Inter', sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+            text-decoration: none;
+            cursor: pointer;
+            text-align: left;
+            transition: background 0.15s;
+        }
+
+        .menu a:hover,
+        .menu button:hover { background: rgba(255, 255, 255, 0.15); }
+
+        .menu a.active { background: #ffc400; color: #000; }
+
+        .menu svg {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+            flex-shrink: 0;
+            margin-left: -26px;
+        }
+
+        /* ---------- Conteúdo ---------- */
+        .main {
+            flex: 1;
+            min-width: 0;
+            padding: 52px 28px 28px 14px;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        .topo {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 14px;
+            flex-wrap: wrap;
+            margin: 0 0 14px 6px;
+        }
+
+        .titulo {
+            font-family: 'DM Sans', 'Inter', sans-serif;
+            font-size: 48px;
+            font-weight: 800;
+            letter-spacing: 0.3px;
+            line-height: 1.15;
+        }
+
+        .filtros {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            padding-bottom: 8px;
+        }
+
+        .busca {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #fffdf0;
+            border: 1px solid #f5c26b;
+            border-radius: 24px;
+            padding: 0 14px;
+            height: 40px;
+            width: 220px;
+        }
+
+        .busca svg { width: 18px; height: 18px; fill: #8a8a8a; flex-shrink: 0; }
+
+        .busca input {
+            border: none;
+            background: transparent;
+            outline: none;
+            font-size: 14px;
+            width: 100%;
+        }
+
+        .select-filtro {
+            height: 40px;
+            border-radius: 24px;
+            border: 1px solid #f5c26b;
+            background: #fffdf0;
+            padding: 0 14px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        /* Painel grande com os cartões */
+        .painel {
+            flex: 1;
+            min-height: 0;
+            background: #fdf9ee;
+            border: 1px solid #f5c26b;
+            border-radius: 18px;
+            padding: 16px 12px 16px 16px;
+            display: flex;
+        }
+
+        .grade {
+            flex: 1;
+            overflow-y: auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(212px, 232px));
+            gap: 22px 26px;
+            align-content: start;
+            padding: 2px 18px 90px 2px;
+            scrollbar-color: #ffc400 #f6f1e0;
+            scrollbar-width: thin;
+        }
+
+        .grade::-webkit-scrollbar { width: 8px; }
+        .grade::-webkit-scrollbar-track { background: #f6f1e0; border-radius: 8px; }
+        .grade::-webkit-scrollbar-thumb { background: #ffc400; border-radius: 8px; }
+
+        .vazio {
+            grid-column: 1 / -1;
+            text-align: center;
+            color: #777;
+            padding: 50px 0;
+            font-size: 15px;
+        }
+
+        /* Cartão de alerta */
+        .alerta {
+            position: relative;
+            background: #fffdf0;
+            border: 2px solid #ffbd59;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding-bottom: 22px;
+            transition: transform .15s, box-shadow .15s;
+            animation: entrar .25s ease;
+        }
+
+        @keyframes entrar { from { opacity: 0; transform: translateY(8px); } }
+
+        .alerta:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 16px rgba(0,0,0,.14);
+        }
+
+        .alerta.alto { border-color: #da291c; }
+
+        .alerta-topo {
+            width: calc(100% + 4px);
+            margin: -2px -2px 0;
+            background: #ffbd59;
+            padding: 11px 6px;
+            font-family: 'DM Sans', 'Inter', sans-serif;
+            font-size: 17px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .3px;
+            border-radius: 6px 6px 0 0;
+            cursor: pointer;
+        }
+
+        .alerta.alto .alerta-topo { background: #da291c; color: #fff; }
+
+        .alerta-corpo {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            padding: 16px 10px 0;
+            cursor: pointer;
+        }
+
+        .avatar {
+            width: 58px;
+            height: 58px;
+            border-radius: 50%;
+            background: #8e8e8e;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .avatar svg { width: 50px; height: 50px; fill: #fff; }
+
+        .nome {
+            margin-top: 14px;
+            margin-bottom: 20px;
+            font-family: 'DM Sans', 'Inter', sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+            min-height: 20px;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .etapa-wrap { position: relative; }
+
+        .etapa {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 5px 16px;
+            border-radius: 20px;
+            border: 1.5px solid #ffbd59;
+            background: #fffdf0;
+            font-family: 'DM Sans', 'Inter', sans-serif;
+            font-size: 12.5px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: filter .15s, transform .1s;
+        }
+
+        .etapa:hover { filter: brightness(.95); }
+        .etapa:active { transform: scale(.97); }
+
+        .alerta.alto .etapa { border-color: #da291c; }
+
+        .etapa.resolvido {
+            background: #ffbd59;
+            padding: 6px 22px;
+            font-size: 13px;
+        }
+
+        .alerta.alto .etapa.resolvido { background: #ffbd59; border-color: #ffbd59; }
+
+        .etapa-menu {
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 50%;
+            transform: translateX(-50%);
+            width: 150px;
+            background: #fffdf0;
+            border: 1.5px solid #ffbd59;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 6px 16px rgba(0,0,0,.2);
+            z-index: 20;
+            animation: entrar .12s ease;
+        }
+
+        .etapa-menu button {
+            display: block;
+            width: 100%;
+            padding: 8px 10px;
+            border: none;
+            background: transparent;
+            font-family: 'DM Sans', 'Inter', sans-serif;
+            font-size: 12.5px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .etapa-menu button + button { border-top: 1px solid #ffd58a; }
+        .etapa-menu button:hover { background: #fff0bf; }
+        .etapa-menu button[aria-current="true"] { background: #ffe9a8; }
+
+        .urgente {
+            position: absolute;
+            right: -26px;
+            bottom: -26px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #fffdf0;
+            border: 1.5px solid #ffbd59;
+            color: #e5261b;
+            font-family: 'DM Sans', 'Inter', sans-serif;
+            font-size: 24px;
+            font-weight: 800;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform .15s;
+        }
+
+        .urgente:hover { transform: scale(1.12); }
+
+        /* ---------- Modal ---------- */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            z-index: 50;
+        }
+
+        .modal-overlay[hidden] { display: none; }
+
+        .modal {
+            position: relative;
+            background: #fffdf0;
+            border: 1px solid #7b7b7b;
+            border-radius: 18px;
+            width: 100%;
+            max-width: 460px;
+            max-height: 92vh;
+            overflow-y: auto;
+            padding: 28px 26px 22px;
+            box-shadow: 0 12px 40px rgba(0,0,0,.3);
+            animation: surgir .18s ease;
+        }
+
+        @keyframes surgir { from { opacity: 0; transform: translateY(10px) scale(.98); } }
+
+        .modal h2 {
+            font-family: 'DM Sans', 'Inter', sans-serif;
+            font-size: 22px;
+            font-weight: 800;
+            margin-bottom: 14px;
+            padding-right: 28px;
+        }
+
+        .modal-x {
+            position: absolute;
+            top: 12px;
+            right: 14px;
+            width: 32px;
+            height: 32px;
+            border: none;
+            border-radius: 50%;
+            background: transparent;
+            font-size: 24px;
+            line-height: 1;
+            cursor: pointer;
+        }
+
+        .modal-x:hover { background: rgba(0,0,0,.08); }
+
+        .modal-corpo { font-size: 14px; line-height: 1.5; }
+        .modal-corpo p { margin-bottom: 10px; }
+        .modal-corpo ul { margin: 0 0 10px 18px; }
+        .modal-corpo li { margin-bottom: 4px; }
+
+        .modal-linha {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 7px 0;
+            border-bottom: 1px solid #ece6c4;
+        }
+
+        .modal-linha:last-of-type { border-bottom: none; }
+        .modal-linha strong { text-align: right; }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .badge.alto { background: #da291c; }
+        .badge.medio { background: #f08a00; }
+        .badge.baixo { background: #3a9d4a; }
+
+        .modal-acoes {
+            display: flex;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 18px;
+        }
+
+        .btn {
+            padding: 9px 16px;
+            border-radius: 8px;
+            border: 1px solid #333;
+            background: #fff;
+            color: #000;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: filter .15s, transform .1s;
+        }
+
+        .btn:hover { filter: brightness(.94); }
+        .btn:active { transform: scale(.97); }
+        .btn:disabled { opacity: .6; cursor: wait; }
+        .btn.primario { background: #da291c; border-color: #da291c; color: #fff; }
+        .btn.amarelo { background: #ffc400; border-color: #ffc400; }
+
+        .campo label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .campo textarea {
+            width: 100%;
+            min-height: 90px;
+            border: 1px solid #cfc6a0;
+            border-radius: 8px;
+            background: #fff;
+            padding: 10px;
+            font-size: 14px;
+            resize: vertical;
+        }
+
+        .campo textarea:focus {
+            outline: none;
+            border-color: #ffc400;
+            box-shadow: 0 0 0 3px rgba(255,196,0,.35);
+        }
+
+        .campo input { width: 100%; height: 40px; margin-top: 4px; border: 1px solid #cfc6a0; border-radius: 8px; background: #fff; padding: 0 10px; font-size: 14px; }
+        .campo + .campo { margin-top: 12px; }
+        .erro-form { color: #da291c; font-size: 13px; font-weight: 600; margin-top: 8px; }
+
+        .opcao {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 0;
+            border-bottom: 1px solid #ece6c4;
+            cursor: pointer;
+        }
+
+        .opcao input { width: 18px; height: 18px; accent-color: #da291c; cursor: pointer; }
+
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translate(-50%, 20px);
+            background: #222;
+            color: #fff;
+            padding: 10px 18px;
+            border-radius: 10px;
+            font-size: 14px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .2s, transform .2s;
+            z-index: 60;
+        }
+
+        .toast.visivel { opacity: 1; transform: translate(-50%, 0); }
+
+        /* ---------- Responsivo ---------- */
+        @media (max-width: 700px) {
+            body { flex-direction: column; }
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: static;
+                padding: 20px 14px;
+            }
+            .sidebar-logo { margin: 0 0 18px 0; }
+            .sidebar-logo img { width: 60px; }
+            .menu { flex-direction: row; flex-wrap: wrap; }
+            .menu li { flex: 1 1 auto; }
+            .menu a, .menu button { padding: 8px 12px; justify-content: center; }
+            .menu svg { margin-left: 0; }
+            .main { height: auto; padding: 22px 14px; }
+            .painel { min-height: 400px; }
+            .titulo { font-size: 34px; }
+            .busca { width: 100%; }
+            .grade { grid-template-columns: 1fr; padding-right: 22px; }
+        }
+    </style>
+<link rel="icon" href="img/logo-m.png">
+<script src="config.js"></script>
+<script src="tema.js"></script>
+</head>
+<body>
+
+    <!-- Menu lateral -->
+    <aside class="sidebar">
+        <div class="sidebar-logo"><img src="img/logo-m.png" alt="MéquiJunto"></div>
+
+        <ul class="menu">
+            <li>
+                <a href="dashboard.html">
+                    <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+                    Dashboard
+                </a>
+            </li>
+            <li>
+                <a href="colaboradores.html">
+                    <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+                    Funcionários
+                </a>
+            </li>
+            <li>
+                <a href="alertas.html" class="active">
+                    <svg viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+                    Alertas
+                </a>
+            </li>
+            <li>
+                <a href="conversas.html">
+                    <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+                    Conversas
+                </a>
+            </li>
+            <li>
+                <a href="configuracoes.html" id="btnConfig">
+                    <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+                    Configurações
+                </a>
+            </li>
+            <li>
+                <a href="#" id="btnAjuda">
+                    <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/></svg>
+                    Ajuda
+                </a>
+            </li>
+            <li>
+                <button type="button" id="btnSair">
+                    <svg viewBox="0 0 24 24"><path d="M5 3h9c1.1 0 2 .9 2 2v3h-2V5H5v14h9v-3h2v3c0 1.1-.9 2-2 2H5c-1.1 0-2-.9-2-2V5c0-1.1.9-2 2-2zm12.6 5.6L22 13l-4.4 4.4-1.4-1.4 2-2H9v-2h9.2l-2-2 1.8-1.4z"/></svg>
+                    Sair
+                </button>
+            </li>
+        </ul>
+    </aside>
+
+    <!-- Conteúdo principal -->
+    <main class="main">
+        <div class="topo">
+            <h1 class="titulo">Panorama dos Alertas</h1>
+            <div class="filtros">
+                <label class="busca">
+                    <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+                    <input type="search" id="busca" placeholder="Buscar colaborador..." aria-label="Buscar colaborador">
+                </label>
+                <select class="select-filtro" id="filtroEtapa" aria-label="Filtrar por etapa">
+                    <option value="todos">Todas as etapas</option>
+                    <option value="pendente">Pendente</option>
+                    <option value="conversar">Conversar</option>
+                    <option value="resolvido">Resolvido</option>
+                </select>
+            </div>
+        </div>
+
+        <section class="painel">
+            <div class="grade" id="grade" aria-live="polite">
+                <p class="vazio">Carregando alertas...</p>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal e aviso -->
+    <div class="modal-overlay" id="modal" hidden>
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitulo">
+            <button type="button" class="modal-x" id="modalX" aria-label="Fechar">&times;</button>
+            <h2 id="modalTitulo"></h2>
+            <div class="modal-corpo" id="modalCorpo"></div>
+            <div class="modal-acoes" id="modalAcoes"></div>
+        </div>
+    </div>
+    <div class="toast" id="toast" role="status"></div>
+
+    <script>
+        const DEMO = new URLSearchParams(location.search).has("demo");
+        const API_ALERTAS = MJ_API + "/api/alertas";
+        const token = sessionStorage.getItem("token");
+
+        // O back exige o ID de um usuário RH/Gerência como responsável (não há endpoint /me).
+        // O valor fica salvo no navegador e pode ser alterado ao confirmar uma etapa.
+        // Se o back tiver GET /api/auth/me, usa o ID de lá e esconde o campo manual.
+        let meId = null;
+        (async () => {
+            try {
+                const r = await fetch(MJ_API + "/api/auth/me", { headers: { 'Authorization': `Bearer ${token}` } });
+                if (r.ok) { const u = await r.json(); if (u && u.id) meId = u.id; }
+            } catch (e) {}
+        })();
+        function responsavelAtual() {
+            if (meId) return String(meId);
+            try { return localStorage.getItem("mj_responsavel_id") || "1"; } catch (e) { return "1"; }
+        }
+
+        // Etapas exibidas no painel -> status que a API entende
+        const ETAPAS = {
+            pendente: { rotulo: "Pendente", status: "PENDENTE", obsPadrao: "Alerta reaberto." },
+            conversar: { rotulo: "Conversar", status: "EM_ANALISE", obsPadrao: "Em acompanhamento pelo RH." },
+            resolvido: { rotulo: "Resolvido", status: "RESOLVIDO", obsPadrao: "Alerta resolvido." }
+        };
+
+        const ICONE_PESSOA = '<svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>';
+
+        let alertas = [];
+        let carregando = true;
+        let erroCarga = null;
+
+        /* ---------- Utilidades ---------- */
+        function criar(tag, classe, texto) {
+            const el = document.createElement(tag);
+            if (classe) el.className = classe;
+            if (texto !== undefined) el.textContent = texto;
+            return el;
+        }
+
+        function normalizar(t) {
+            return String(t || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+        }
+
+        function formatarData(s) {
+            if (!s) return "--/--/----";
+            const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(s);
+            return m ? `${m[3]}/${m[2]}/${m[1]}` : String(s);
+        }
+
+        function lerPref(chave, padrao) {
+            try {
+                const v = localStorage.getItem("mj_" + chave);
+                return v === null ? padrao : v === "1";
+            } catch (e) { return padrao; }
+        }
+
+        function salvarPref(chave, valor) {
+            try { localStorage.setItem("mj_" + chave, valor ? "1" : "0"); } catch (e) {}
+        }
+
+        let toastTimer;
+        function toast(msg) {
+            const t = document.getElementById("toast");
+            t.textContent = msg;
+            t.classList.add("visivel");
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => t.classList.remove("visivel"), 2600);
+        }
+
+        /* ---------- Normalização dos dados da API ---------- */
+        // Os nomes dos campos abaixo são tentativas; ajuste se a sua API usar outros.
+        function normalizarAlerta(a) {
+            const nb = normalizar(a.nivelRisco);
+            const nivel = ["alto", "alta", "critico", "high"].includes(nb) ? "alto"
+                        : ["baixo", "baixa", "low"].includes(nb) ? "baixo" : "medio";
+            const st = String(a.statusAlerta || "PENDENTE").toUpperCase();
+            return {
+                id: a.id,
+                conversaId: a.conversaId,
+                nome: a.nomeUsuario || a.nomeColaborador || ("Colaborador #" + a.usuarioId),
+                telefone: a.telefoneUsuario || "",
+                data: a.criadoEm || a.dataAlerta || "",
+                nivel,
+                status: st,
+                etapa: st === "RESOLVIDO" ? "resolvido" : st === "EM_ANALISE" ? "conversar" : "pendente",
+                conteudo: a.conteudo || "",
+                analise: a.analiseIa || a.descricao || "",
+                tipoSinal: a.tipoSinal || "",
+                destino: a.destinoAlerta || "",
+                responsavel: a.nomeResponsavel || "",
+                retornoEm: a.retornoEm || "",
+                observacao: a.observacaoRetorno || ""
+            };
+        }
+
+        /* ---------- Modal ---------- */
+        let ultimoFoco = null;
+
+        function abrirModal(titulo, corpo, botoes) {
+            ultimoFoco = document.activeElement;
+            document.getElementById("modalTitulo").textContent = titulo;
+
+            const corpoEl = document.getElementById("modalCorpo");
+            corpoEl.innerHTML = "";
+            corpoEl.appendChild(corpo);
+
+            const acoes = document.getElementById("modalAcoes");
+            acoes.innerHTML = "";
+            (botoes || []).forEach(b => {
+                const el = criar(b.href ? "a" : "button", "btn " + (b.classe || ""), b.texto);
+                if (b.href) el.href = b.href; else el.type = "button";
+                el.addEventListener("click", () => {
+                    if (b.onClick) b.onClick();
+                    if (!b.manter) fecharModal();
+                });
+                acoes.appendChild(el);
+            });
+
+            document.getElementById("modal").hidden = false;
+            const foco = corpoEl.querySelector("textarea, input") || acoes.querySelector(".btn") || document.getElementById("modalX");
+            foco.focus();
+        }
+
+        function fecharModal() {
+            document.getElementById("modal").hidden = true;
+            if (ultimoFoco && ultimoFoco.focus) ultimoFoco.focus();
+        }
+
+        document.getElementById("modalX").addEventListener("click", fecharModal);
+        document.getElementById("modal").addEventListener("click", e => {
+            if (e.target.id === "modal") fecharModal();
+        });
+        document.addEventListener("keydown", e => {
+            if (e.key === "Escape") {
+                if (!document.getElementById("modal").hidden) fecharModal();
+                fecharMenusEtapa();
+            }
+        });
+
+        /* ---------- Grade de alertas ---------- */
+        function filtrados() {
+            const termo = normalizar(document.getElementById("busca").value.trim());
+            const etapa = document.getElementById("filtroEtapa").value;
+            return alertas
+                .filter(a => (etapa === "todos" || a.etapa === etapa) &&
+                             (!termo || normalizar(a.nome).includes(termo)))
+                .sort((x, y) => String(y.data).localeCompare(String(x.data)));
+        }
+
+        function desenhar() {
+            const grade = document.getElementById("grade");
+            grade.innerHTML = "";
+
+            if (carregando) {
+                grade.appendChild(criar("p", "vazio", "Carregando alertas..."));
+                return;
+            }
+
+            if (erroCarga) {
+                const box = criar("div", "vazio");
+                box.appendChild(criar("p", "", erroCarga));
+                const dica = criar("p", "", "Para ver a tela com dados de exemplo, abra alertas.html?demo");
+                dica.style.cssText = "font-size:13px;margin-top:8px";
+                box.appendChild(dica);
+                const b = criar("button", "btn amarelo", "Tentar novamente");
+                b.type = "button";
+                b.style.marginTop = "14px";
+                b.addEventListener("click", () => {
+                    carregando = true; erroCarga = null; desenhar(); carregarAlertas();
+                });
+                box.appendChild(b);
+                grade.appendChild(box);
+                return;
+            }
+
+            const itens = filtrados();
+            if (itens.length === 0) {
+                grade.appendChild(criar("p", "vazio",
+                    alertas.length === 0 ? "A API respondeu, mas não há nenhum alerta cadastrado ainda." : "Nenhum alerta com esses filtros."));
+                return;
+            }
+
+            itens.forEach(a => grade.appendChild(criarCartao(a)));
+        }
+
+        function criarCartao(a) {
+            const urgente = a.nivel === "alto" && a.etapa !== "resolvido";
+            const card = criar("article", "alerta" + (urgente ? " alto" : ""));
+
+            const topo = criar("div", "alerta-topo", "Alerta: " + formatarData(a.data));
+            topo.tabIndex = 0;
+            topo.setAttribute("role", "button");
+            topo.title = "Ver detalhes";
+            card.appendChild(topo);
+
+            const corpo = criar("div", "alerta-corpo");
+            corpo.title = "Ver detalhes";
+            const avatar = criar("div", "avatar");
+            avatar.innerHTML = ICONE_PESSOA;
+            corpo.appendChild(avatar);
+            corpo.appendChild(criar("div", "nome", a.nome));
+            card.appendChild(corpo);
+
+            const abrir = () => abrirDetalhes(a);
+            [topo, corpo].forEach(el => el.addEventListener("click", abrir));
+            topo.addEventListener("keydown", e => {
+                if (e.key === "Enter" || e.key === " ") { e.preventDefault(); abrir(); }
+            });
+
+            const wrap = criar("div", "etapa-wrap");
+            const botao = criar("button", "etapa" + (a.etapa === "resolvido" ? " resolvido" : ""),
+                                "Etapa: " + ETAPAS[a.etapa].rotulo);
+            botao.type = "button";
+            botao.setAttribute("aria-haspopup", "true");
+            botao.title = "Alterar etapa";
+            botao.addEventListener("click", e => {
+                e.stopPropagation();
+                alternarMenuEtapa(wrap, a);
+            });
+            wrap.appendChild(botao);
+            card.appendChild(wrap);
+
+            if (urgente) {
+                const x = criar("button", "urgente", "!");
+                x.type = "button";
+                x.title = "Alerta de risco alto";
+                x.setAttribute("aria-label", "Alerta de risco alto - ver detalhes");
+                x.addEventListener("click", abrir);
+                card.appendChild(x);
+            }
+
+            return card;
+        }
+
+        /* ---------- Menu de etapa (dropdown do cartão) ---------- */
+        function fecharMenusEtapa() {
+            document.querySelectorAll(".etapa-menu").forEach(m => m.remove());
+        }
+
+        function alternarMenuEtapa(wrap, a) {
+            const jaAberto = wrap.querySelector(".etapa-menu");
+            fecharMenusEtapa();
+            if (jaAberto) return;
+
+            const menu = criar("div", "etapa-menu");
+            Object.entries(ETAPAS).forEach(([chave, e]) => {
+                const b = criar("button", "", "Etapa: " + e.rotulo);
+                b.type = "button";
+                if (chave === a.etapa) b.setAttribute("aria-current", "true");
+                b.addEventListener("click", ev => {
+                    ev.stopPropagation();
+                    fecharMenusEtapa();
+                    if (chave === a.etapa) return toast("O alerta já está na etapa " + e.rotulo);
+                    pedirObservacao(a, chave);
+                });
+                menu.appendChild(b);
+            });
+            wrap.appendChild(menu);
+        }
+
+        document.addEventListener("click", e => {
+            if (!e.target.closest(".etapa-menu")) fecharMenusEtapa();
+        });
+
+        /* ---------- Detalhes ---------- */
+        function abrirDetalhes(a) {
+            const corpo = document.createElement("div");
+
+            function linha(rotulo, valorNode) {
+                const l = criar("div", "modal-linha");
+                l.appendChild(criar("span", "", rotulo));
+                l.appendChild(valorNode);
+                corpo.appendChild(l);
+            }
+
+            linha("Colaborador", criar("strong", "", a.nome));
+            linha("Data", criar("strong", "", formatarData(a.data)));
+            linha("Nível de risco", criar("span", "badge " + a.nivel,
+                a.nivel === "alto" ? "Alto" : a.nivel === "baixo" ? "Baixo" : "Médio"));
+            linha("Etapa", criar("strong", "", ETAPAS[a.etapa].rotulo));
+
+            if (a.telefone) linha("Telefone", criar("strong", "", a.telefone));
+            if (a.tipoSinal) linha("Tipo de sinal", criar("strong", "", a.tipoSinal));
+            if (a.destino) linha("Encaminhado para", criar("strong", "", a.destino));
+            if (a.responsavel) linha("Responsável", criar("strong", "", a.responsavel + (a.retornoEm ? " · " + formatarData(a.retornoEm) : "")));
+
+            function bloco(titulo, texto) {
+                if (!texto) return;
+                const t = criar("p", "", titulo); t.style.cssText = "margin:12px 0 2px;font-weight:700";
+                corpo.appendChild(t);
+                corpo.appendChild(criar("p", "", texto));
+            }
+            bloco("Análise da IA", a.analise);
+            bloco("Mensagem do colaborador", a.conteudo);
+
+            if (a.observacao) {
+                const obs = criar("p", "", "Observação: " + a.observacao);
+                obs.style.fontStyle = "italic";
+                corpo.appendChild(obs);
+            }
+
+            const botoes = [{ texto: "Fechar" }];
+            if (a.conversaId) botoes.push({ texto: "Ver conversa", href: "conversas.html?conversa=" + a.conversaId });
+            if (a.etapa !== "resolvido") {
+                botoes.push({ texto: "Marcar como Resolvido", classe: "amarelo",
+                              onClick: () => setTimeout(() => pedirObservacao(a, "resolvido"), 0), manter: true });
+            } else {
+                botoes.push({ texto: "Voltar para Conversar", classe: "amarelo",
+                              onClick: () => setTimeout(() => pedirObservacao(a, "conversar"), 0), manter: true });
+            }
+            abrirModal("Alerta #" + a.id, corpo, botoes);
+        }
+
+        /* ---------- Alterar etapa (substitui os prompt() do original) ---------- */
+        function pedirObservacao(a, novaEtapa) {
+            const etapa = ETAPAS[novaEtapa];
+            const corpo = document.createElement("div");
+            corpo.appendChild(criar("p", "", a.nome + " → Etapa: " + etapa.rotulo));
+
+            const campo = criar("div", "campo");
+            const label = criar("label", "", "Observação do atendimento");
+            label.htmlFor = "obs";
+            const ta = document.createElement("textarea");
+            ta.id = "obs";
+            ta.value = etapa.obsPadrao;
+            campo.appendChild(label);
+            campo.appendChild(ta);
+            const erro = criar("div", "erro-form");
+            corpo.appendChild(campo);
+
+            const campoId = criar("div", "campo");
+            const lblId = criar("label", "", "Seu ID de usuário (responsável pelo retorno)");
+            lblId.htmlFor = "respId";
+            const inId = document.createElement("input");
+            inId.id = "respId"; inId.type = "number"; inId.min = "1"; inId.value = responsavelAtual();
+            campoId.appendChild(lblId); campoId.appendChild(inId);
+            if (!meId) corpo.appendChild(campoId);
+            corpo.appendChild(erro);
+
+            abrirModal("Alterar etapa", corpo, [
+                { texto: "Cancelar" },
+                {
+                    texto: "Confirmar", classe: "primario", manter: true,
+                    onClick: async () => {
+                        try { localStorage.setItem("mj_responsavel_id", inId.value || "1"); } catch (e) {}
+                        const ok = await atualizarAlerta(a, novaEtapa, ta.value.trim(), erro);
+                        if (ok) fecharModal();
+                    }
+                }
+            ]);
+        }
+
+        async function atualizarAlerta(a, novaEtapa, obs, erroEl) {
+            const etapa = ETAPAS[novaEtapa];
+
+            if (DEMO) {
+                a.etapa = novaEtapa;
+                a.status = etapa.status;
+                a.observacao = obs;
+                desenhar();
+                toast("Alerta atualizado!");
+                return true;
+            }
+
+            try {
+                const res = await fetch(`${API_ALERTAS}/${a.id}/retorno`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        statusAlerta: etapa.status,
+                        responsavelId: Number(responsavelAtual()),
+                        observacaoRetorno: obs
+                    })
+                });
+
+                if (res.ok) {
+                    toast("Alerta atualizado!");
+                    carregarAlertas();
+                    return true;
+                }
+                erroEl.textContent = (res.status === 403 || res.status === 404)
+                    ? "ID de responsável inválido: informe o ID de um usuário ativo de RH ou Gerência."
+                    : "Erro ao atualizar alerta (" + res.status + ").";
+            } catch (err) {
+                console.error("Erro:", err);
+                erroEl.textContent = "Erro ao conectar com o servidor.";
+            }
+            return false;
+        }
+
+        /* ---------- API: listar ---------- */
+        async function carregarAlertas() {
+            erroCarga = null;
+            try {
+                const res = await fetch(API_ALERTAS, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (res.status === 401) {
+                    sessionStorage.removeItem("token"); try { localStorage.removeItem("mj_token"); } catch (e) {}
+                    window.location.href = "index.html";
+                    return;
+                }
+
+                if (!res.ok) {
+                    erroCarga = res.status === 403
+                        ? "Sem permissão para listar alertas (erro 403). Verifique o perfil do usuário logado."
+                        : "A API respondeu com erro " + res.status + " ao buscar os alertas.";
+                } else {
+                    const dados = await res.json();
+                    // aceita lista direta ou paginada ({ content: [...] }, { data: [...] }, etc.)
+                    console.log("Resposta de /api/alertas:", dados);
+                    // lista direta, ou a primeira lista encontrada dentro do objeto (ex.: { content: [...] })
+                    const lista = Array.isArray(dados) ? dados
+                        : (dados && typeof dados === "object" ? Object.values(dados).find(Array.isArray) : null);
+                    if (!Array.isArray(lista)) {
+                        erroCarga = "A resposta da API veio em um formato inesperado" +
+                            (dados && typeof dados === "object" ? " (campos: " + Object.keys(dados).join(", ") + ")." : ".");
+                    } else {
+                        alertas = lista.map(normalizarAlerta);
+                    }
+                }
+            } catch (err) {
+                console.error("Erro ao carregar alertas:", err);
+                erroCarga = "Não consegui conectar em " + API_ALERTAS + ". O backend está rodando?";
+            }
+            carregando = false;
+            desenhar();
+        }
+
+        /* ---------- Menu lateral ---------- */
+        document.getElementById("btnAjuda").addEventListener("click", e => {
+            e.preventDefault();
+            const corpo = document.createElement("div");
+            const ul = document.createElement("ul");
+            [
+                "Clique no cabeçalho ou no nome do cartão para ver os detalhes do alerta.",
+                "Clique em \"Etapa\" para mover o alerta entre Conversar e Resolvido.",
+                "Cartões com cabeçalho vermelho e o ícone ! são alertas de risco alto ainda não resolvidos.",
+                "Use a busca e o filtro para encontrar alertas específicos.",
+                "Pressione Esc para fechar qualquer janela."
+            ].forEach(t => ul.appendChild(criar("li", "", t)));
+            corpo.appendChild(ul);
+            abrirModal("Ajuda", corpo, [{ texto: "Entendi", classe: "amarelo" }]);
+        });
+
+        function logout() {
+            sessionStorage.removeItem("token"); try { localStorage.removeItem("mj_token"); } catch (e) {}
+            window.location.href = "index.html";
+        }
+
+        document.getElementById("btnSair").addEventListener("click", () => {
+            abrirModal("Sair", criar("p", "", "Tem certeza de que deseja sair do painel?"), [
+                { texto: "Cancelar" },
+                { texto: "Sair", classe: "primario", onClick: logout, manter: true }
+            ]);
+        });
+
+        /* ---------- Início ---------- */
+        document.getElementById("busca").addEventListener("input", desenhar);
+        document.getElementById("filtroEtapa").addEventListener("change", desenhar);
+
+        if (!token && !DEMO) {
+            window.location.href = "index.html";
+        } else if (DEMO) {
+            // Modo demonstração: abra alertas.html?demo para testar sem backend
+            alertas = [
+                { id: 1, nomeColaborador: "Ana Júlia de Santos", dataAlerta: "2026-10-15", nivelRisco: "MEDIO", statusAlerta: "EM_ANALISE", descricao: "Três faltas sem justificativa nos últimos 7 dias." },
+                { id: 2, nomeColaborador: "Humberto Barreto", dataAlerta: "2026-10-13", nivelRisco: "ALTO", statusAlerta: "PENDENTE", descricao: "Mensagens indicando sofrimento emocional intenso." },
+                { id: 3, nomeColaborador: "Nicolas Kreling", dataAlerta: "2026-10-13", nivelRisco: "BAIXO", statusAlerta: "RESOLVIDO", descricao: "Atraso recorrente no início do turno.", observacaoRetorno: "Conversa realizada, horário ajustado." },
+                { id: 4, nomeColaborador: "Vicenzo Brum", dataAlerta: "2026-10-13", nivelRisco: "MEDIO", statusAlerta: "RESOLVIDO", descricao: "Dificuldade com a escala de horários.", observacaoRetorno: "Escala renegociada." }
+            ].map(normalizarAlerta);
+            carregando = false;
+            desenhar();
+        } else {
+            carregarAlertas();
+        }
+    </script>
+</body>
+</html>

@@ -31,3 +31,14 @@ build/
 
 ### VS Code ###
 .vscode/
+# Dependências Node.js
+node_modules/
+**/node_modules/
+
+# Variáveis de ambiente
+.env
+.env.*
+!.env.example
+
+# Arquivos temporários
+*.loggit switch -c nicolas-integracao
