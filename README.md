@@ -130,4 +130,5 @@ Em desenvolvimento.
 
 Equipe MéquiJunto — Desafio GC, programa Geração Caldeira, para a empresa Kallopolli.
 
-**Integrantes:** [adicione os nomes da equipe]
+**Integrantes:** 
+Humberto Barreto, Rayssa Ribeiro, Vicenzo Brum, Nicolas Kreling, Pedro Moreira
