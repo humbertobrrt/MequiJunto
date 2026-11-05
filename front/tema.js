@@ -11,7 +11,7 @@
     html[data-tema="escuro"] .btn:not(.primario):not(.amarelo) { background:#333 !important; color:#eee !important; border-color:#666 !important; }
     html[data-tema="escuro"] :is(.titulo,.greeting,.modal h2,.chat-topo h2,.info h3,.conv-info strong,.nome,.top-info h3) { color:#fff !important; }
     html[data-tema="escuro"] :is(.contagem,.user-info span,.conv-info small,.conv-resumo,.chat-topo p,.vazio,.kpi h3,.info p,.bolha .meta) { color:#aaa !important; }
-    html[data-tema="escuro"] :is(.total-box,.alerta-topo,.tag-status,.status,.btn.amarelo,.bolha.ia,.menu a.active) { color:#000 !important; }
+    html[data-tema="escuro"] :is(.total-box,.top-item small,.alerta-topo,.tag-status,.status,.btn.amarelo,.bolha.ia,.menu a.active) { color:#000 !important; }
     html[data-tema="escuro"] .alerta.alto .alerta-topo { color:#fff !important; }
     html[data-tema="escuro"] #grafico text { fill:#ddd; }
     html[data-tema="escuro"] #grafico line { stroke:#444; }
