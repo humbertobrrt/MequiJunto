@@ -719,7 +719,7 @@
             <div class="kpi" data-href="colaboradores.html" tabindex="0" role="link" title="Ver colaboradores"><h3>Ativos</h3><p id="colaboradoresAtivos">-</p></div>
             <div class="kpi" data-href="colaboradores.html" tabindex="0" role="link" title="Ver colaboradores"><h3>Funcionário nos primeiros 90 dias</h3><p id="colaboradoresPrimeiros90Dias">-</p></div>
             <div class="kpi" data-href="alertas.html" tabindex="0" role="link" title="Ver alertas"><h3>Alertas Pendentes</h3><p id="alertasPendentes">-</p></div>
-            <div class="kpi" data-href="alertas.html" tabindex="0" role="link" title="Ver alertas"><h3>Alertas</h3><p id="alertasNivelAlto">-</p></div>
+            <div class="kpi" data-href="alertas.html" tabindex="0" role="link" title="Ver alertas"><h3>Total de Alertas</h3><p id="totalAlertas">-</p></div>
         </div>
 
         <div class="layout">
@@ -781,6 +781,7 @@
         const ROTULO_X = { "essa semana": "Dias da semana", "semana passada": "Dias da semana", "este mês": "Semanas do mês" };
         let PERIODOS = {};
         let alertasRecentes = [];
+        let totalAlertasCarregados = 0;
         let COLAB_TOP = []; // até 3 colaboradores com mais alertas
 
         function inicioSemana(d) {
@@ -789,12 +790,7 @@
             return x;
         }
 
-        function nivelRotulo(n) {
-            const v = String(n || "").toUpperCase();
-            return ["ALTO", "ALTA", "CRITICO", "CRÍTICO"].includes(v) ? "Alto" : ["BAIXO", "BAIXA"].includes(v) ? "Baixo" : "Médio";
-        }
-
-        function montarDados(lista) {
+         function montarDados(lista) {
             const hoje = new Date();
             const ini = inicioSemana(hoje);
             const nomes = ["SEG", "TER", "QUAR", "QUIN", "SEX", "SAB", "DOM"];
@@ -803,8 +799,12 @@
             const nSem = Math.ceil(new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0).getDate() / 7);
             const mes = Array.from({ length: nSem }, (_, i) => ({ dia: "SEM " + (i + 1), qtd: 0 }));
 
+            totalAlertasCarregados = lista.length;
+            setTexto("totalAlertas", totalAlertasCarregados);
+
+            const dataAlerta = a => a.criadoEm || a.createdAt || a.created_at || a.dataAlerta;
             lista.forEach(a => {
-                const d = new Date(a.criadoEm);
+                const d = new Date(dataAlerta(a));
                 if (isNaN(d)) return;
                 const diff = Math.round((new Date(d.getFullYear(), d.getMonth(), d.getDate()) - ini) / 86400000);
                 if (diff >= 0 && diff < 7) atual[diff].qtd++;
@@ -815,23 +815,26 @@
 
             const pad = n => String(n).padStart(2, "0");
             alertasRecentes = [...lista]
-                .sort((x, y) => String(y.criadoEm).localeCompare(String(x.criadoEm)))
+                .sort((x, y) => String(dataAlerta(y) || "").localeCompare(String(dataAlerta(x) || "")))
                 .slice(0, 5)
                 .map(a => {
-                    const d = new Date(a.criadoEm);
+                    const d = new Date(dataAlerta(a));
+                    const statusAlerta = String(a.statusAlerta || a.status_alerta || a.status || "PENDENTE").toUpperCase();
                     return {
-                        nome: a.nomeUsuario || "Colaborador",
+                        nome: a.nomeUsuario || a.nome_usuario || a.nomeColaborador || "Colaborador",
                         data: isNaN(d) ? "--/--" : pad(d.getDate()) + "/" + pad(d.getMonth() + 1),
-                        nivel: nivelRotulo(a.nivelRisco),
-                        lido: String(a.statusAlerta).toUpperCase() === "RESOLVIDO",
-                        descricao: a.analiseIa || a.conteudo || "Sem detalhes."
+                        tipoSinal: a.tipoSinal || a.tipo_sinal || "Alerta",
+                        statusAlerta,
+                        resolvido: statusAlerta === "RESOLVIDO",
+                        destino: a.destinoAlerta || a.destino_alerta || "",
+                        descricao: a.analiseIa || a.analise_ia || a.descricao || "Sem detalhes."
                     };
                 });
 
             const cont = {};
             lista.forEach(a => {
                 const k = a.usuarioId ?? a.nomeUsuario;
-                if (!cont[k]) cont[k] = { nome: a.nomeUsuario || ("Colaborador #" + a.usuarioId), qtd: 0 };
+                if (!cont[k]) cont[k] = { nome: a.nomeUsuario || a.nomeColaborador || ("Colaborador #" + a.usuarioId), qtd: 0 };
                 cont[k].qtd++;
             });
             COLAB_TOP = Object.values(cont)
@@ -866,7 +869,11 @@
             try {
                 const res = await fetch(MJ_API + "/api/alertas", { headers: { 'Authorization': `Bearer ${token}` } });
                 if (!res.ok) throw new Error(res.status);
-                montarDados(await res.json());
+                const dados = await res.json();
+                const lista = Array.isArray(dados) ? dados
+                    : (dados && typeof dados === "object" ? Object.values(dados).find(Array.isArray) : null);
+                if (!Array.isArray(lista)) throw new Error("Formato inesperado na resposta de /api/alertas");
+                montarDados(lista);
                 atualizarPainelAlertas();
             } catch (e) {
                 console.error("Erro ao carregar alertas:", e);
@@ -1054,10 +1061,10 @@
             const ul = document.getElementById("listaAlertas");
             ul.innerHTML = "";
             if (!alertasRecentes.length) { ul.appendChild(criar("li", "alert-item", "Nenhum alerta registrado.")); return; }
-            const primeiroNaoLido = alertasRecentes.findIndex(a => !a.lido);
+            const primeiroNaoLido = alertasRecentes.findIndex(a => !a.resolvido);
 
             alertasRecentes.forEach((a, i) => {
-                const li = criar("li", "alert-item" + (i === primeiroNaoLido ? " destaque" : "") + (a.lido ? " lido" : ""));
+                const li = criar("li", "alert-item" + (i === primeiroNaoLido ? " destaque" : "") + (a.resolvido ? " lido" : ""));
                 li.tabIndex = 0;
                 li.setAttribute("role", "button");
                 li.title = "Ver detalhes do alerta";
@@ -1077,9 +1084,8 @@
             const corpo = document.createElement("div");
 
             const l1 = criar("div", "modal-linha");
-            l1.appendChild(criar("span", "", "Nível"));
-            const nivelClasse = a.nivel === "Alto" ? "alto" : a.nivel === "Médio" ? "medio" : "baixo";
-            l1.appendChild(criar("span", "badge " + nivelClasse, a.nivel));
+            l1.appendChild(criar("span", "", "Tipo de sinal"));
+            l1.appendChild(criar("strong", "", a.tipoSinal || "Alerta"));
             corpo.appendChild(l1);
 
             const l2 = criar("div", "modal-linha");
@@ -1089,12 +1095,23 @@
 
             const l3 = criar("div", "modal-linha");
             l3.appendChild(criar("span", "", "Status"));
-            l3.appendChild(criar("strong", "", a.lido ? "Resolvido" : "Em aberto"));
+            const statusRotulo = a.statusAlerta === "RESOLVIDO" ? "Resolvido"
+                : a.statusAlerta === "EM_ANALISE" ? "Em conversa" : "Pendente";
+            l3.appendChild(criar("strong", "", statusRotulo));
             corpo.appendChild(l3);
 
-            const desc = criar("p", "", a.descricao);
-            desc.style.marginTop = "12px";
-            corpo.appendChild(desc);
+            if (a.destino) {
+                const l4 = criar("div", "modal-linha");
+                l4.appendChild(criar("span", "", "Encaminhado para"));
+                l4.appendChild(criar("strong", "", a.destino));
+                corpo.appendChild(l4);
+            }
+
+            if (a.descricao) {
+                const desc = criar("p", "", a.descricao);
+                desc.style.marginTop = "12px";
+                corpo.appendChild(desc);
+            }
 
             abrirModal(a.nome, corpo, [
                 { texto: "Ver colaboradores", href: "colaboradores.html" },
@@ -1198,7 +1215,7 @@
                     setTexto("colaboradoresAtivos", dados.colaboradoresAtivos);
                     setTexto("colaboradoresPrimeiros90Dias", dados.colaboradoresPrimeiros90Dias);
                     setTexto("alertasPendentes", dados.alertasPendentes);
-                    setTexto("alertasNivelAlto", dados.alertasNivelAlto);
+                    setTexto("totalAlertas", dados.totalAlertas ?? totalAlertasCarregados);
                 }
             } catch (erro) {
                 console.error("Erro na requisição:", erro);

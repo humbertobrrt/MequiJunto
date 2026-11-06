@@ -102,18 +102,28 @@ X-API-KEY: SUA_CHAVE_DE_INTEGRACAO
 
 A chave enviada no cabeçalho deve ser a mesma configurada em `WHATSAPP_API_KEY` no backend.
 
-Exemplo de corpo da requisição:
+Exemplo de evento sem alerta (o backend atualiza somente a ultima interacao):
 
 ```json
 {
   "telefone": "51999999999",
-  "tipo": "TEXTO",
-  "conteudo": "Mensagem de teste",
-  "respostaIa": "Olá! Esta é uma resposta de teste.",
-  "nivelRisco": "BAIXO"
+  "alertaIdentificado": false
 }
 ```
 
+Exemplo de evento com alerta:
+
+```json
+{
+  "telefone": "51999999999",
+  "alertaIdentificado": true,
+  "tipoSinal": "SOBRECARGA",
+  "analiseIa": "A IA identificou sinais que precisam de acompanhamento pelo RH.",
+  "destinoAlerta": "RH"
+}
+```
+
+O backend nao armazena mensagens individuais nem historicos de conversa; armazena somente os alertas identificados.
 O telefone deve corresponder a um colaborador ativo cadastrado no sistema.
 
 ## Segurança

@@ -630,9 +630,8 @@
         const API_ALERTAS = MJ_API + "/api/alertas";
         const token = sessionStorage.getItem("token");
 
-        // O back exige o ID de um usuário RH/Gerência como responsável (não há endpoint /me).
-        // O valor fica salvo no navegador e pode ser alterado ao confirmar uma etapa.
-        // Se o back tiver GET /api/auth/me, usa o ID de lá e esconde o campo manual.
+        // Busca o usuário autenticado, quando a API disponibiliza /api/auth/me.
+        // Sem esse endpoint, o RH/Gerência informa um ID válido ao atualizar o alerta.
         let meId = null;
         (async () => {
             try {
@@ -642,7 +641,7 @@
         })();
         function responsavelAtual() {
             if (meId) return String(meId);
-            try { return localStorage.getItem("mj_responsavel_id") || "1"; } catch (e) { return "1"; }
+            try { return localStorage.getItem("mj_responsavel_id") || ""; } catch (e) { return ""; }
         }
 
         // Etapas exibidas no painel -> status que a API entende
@@ -697,28 +696,23 @@
         }
 
         /* ---------- Normalização dos dados da API ---------- */
-        // Os nomes dos campos abaixo são tentativas; ajuste se a sua API usar outros.
+        // A tela trabalha somente com os dados do alerta, sem histórico ou conteúdo de mensagens.
         function normalizarAlerta(a) {
-            const nb = normalizar(a.nivelRisco);
-            const nivel = ["alto", "alta", "critico", "high"].includes(nb) ? "alto"
-                        : ["baixo", "baixa", "low"].includes(nb) ? "baixo" : "medio";
-            const st = String(a.statusAlerta || "PENDENTE").toUpperCase();
+            const st = String(a.statusAlerta || a.status_alerta || a.status || "PENDENTE").toUpperCase();
             return {
                 id: a.id,
-                conversaId: a.conversaId,
-                nome: a.nomeUsuario || a.nomeColaborador || ("Colaborador #" + a.usuarioId),
-                telefone: a.telefoneUsuario || "",
-                data: a.criadoEm || a.dataAlerta || "",
-                nivel,
+                usuarioId: a.usuarioId || a.usuario_id,
+                nome: a.nomeUsuario || a.nome_usuario || a.nomeColaborador || ("Colaborador #" + (a.usuarioId || a.usuario_id || "")),
+                telefone: a.telefoneUsuario || a.telefone_usuario || "",
+                data: a.criadoEm || a.createdAt || a.created_at || a.dataAlerta || "",
                 status: st,
                 etapa: st === "RESOLVIDO" ? "resolvido" : st === "EM_ANALISE" ? "conversar" : "pendente",
-                conteudo: a.conteudo || "",
-                analise: a.analiseIa || a.descricao || "",
-                tipoSinal: a.tipoSinal || "",
-                destino: a.destinoAlerta || "",
+                analise: a.analiseIa || a.analise_ia || a.descricao || "",
+                tipoSinal: a.tipoSinal || a.tipo_sinal || "",
+                destino: a.destinoAlerta || a.destino_alerta || "",
                 responsavel: a.nomeResponsavel || "",
-                retornoEm: a.retornoEm || "",
-                observacao: a.observacaoRetorno || ""
+                retornoEm: a.retornoEm || a.retorno_em || "",
+                observacao: a.observacaoRetorno || a.observacao_retorno || ""
             };
         }
 
@@ -813,8 +807,7 @@
         }
 
         function criarCartao(a) {
-            const urgente = a.nivel === "alto" && a.etapa !== "resolvido";
-            const card = criar("article", "alerta" + (urgente ? " alto" : ""));
+            const card = criar("article", "alerta");
 
             const topo = criar("div", "alerta-topo", "Alerta: " + formatarData(a.data));
             topo.tabIndex = 0;
@@ -849,16 +842,7 @@
             wrap.appendChild(botao);
             card.appendChild(wrap);
 
-            if (urgente) {
-                const x = criar("button", "urgente", "!");
-                x.type = "button";
-                x.title = "Alerta de risco alto";
-                x.setAttribute("aria-label", "Alerta de risco alto - ver detalhes");
-                x.addEventListener("click", abrir);
-                card.appendChild(x);
-            }
-
-            return card;
+             return card;
         }
 
         /* ---------- Menu de etapa (dropdown do cartão) ---------- */
@@ -904,8 +888,6 @@
 
             linha("Colaborador", criar("strong", "", a.nome));
             linha("Data", criar("strong", "", formatarData(a.data)));
-            linha("Nível de risco", criar("span", "badge " + a.nivel,
-                a.nivel === "alto" ? "Alto" : a.nivel === "baixo" ? "Baixo" : "Médio"));
             linha("Etapa", criar("strong", "", ETAPAS[a.etapa].rotulo));
 
             if (a.telefone) linha("Telefone", criar("strong", "", a.telefone));
@@ -920,7 +902,6 @@
                 corpo.appendChild(criar("p", "", texto));
             }
             bloco("Análise da IA", a.analise);
-            bloco("Mensagem do colaborador", a.conteudo);
 
             if (a.observacao) {
                 const obs = criar("p", "", "Observação: " + a.observacao);
@@ -960,7 +941,8 @@
             const lblId = criar("label", "", "Seu ID de usuário (responsável pelo retorno)");
             lblId.htmlFor = "respId";
             const inId = document.createElement("input");
-            inId.id = "respId"; inId.type = "number"; inId.min = "1"; inId.value = responsavelAtual();
+            inId.id = "respId"; inId.type = "number"; inId.min = "1"; inId.required = true;
+            inId.value = responsavelAtual();
             campoId.appendChild(lblId); campoId.appendChild(inId);
             if (!meId) corpo.appendChild(campoId);
             corpo.appendChild(erro);
@@ -970,15 +952,21 @@
                 {
                     texto: "Confirmar", classe: "primario", manter: true,
                     onClick: async () => {
-                        try { localStorage.setItem("mj_responsavel_id", inId.value || "1"); } catch (e) {}
-                        const ok = await atualizarAlerta(a, novaEtapa, ta.value.trim(), erro);
+                        const responsavelId = meId ? Number(meId) : Number(inId.value);
+                        if (!Number.isInteger(responsavelId) || responsavelId <= 0) {
+                            erro.textContent = "Informe o ID válido do usuário de RH ou Gerência responsável.";
+                            inId.focus();
+                            return;
+                        }
+                        try { localStorage.setItem("mj_responsavel_id", String(responsavelId)); } catch (e) {}
+                        const ok = await atualizarAlerta(a, novaEtapa, ta.value.trim(), erro, responsavelId);
                         if (ok) fecharModal();
                     }
                 }
             ]);
         }
 
-        async function atualizarAlerta(a, novaEtapa, obs, erroEl) {
+        async function atualizarAlerta(a, novaEtapa, obs, erroEl, responsavelId) {
             const etapa = ETAPAS[novaEtapa];
 
             if (DEMO) {
@@ -999,7 +987,7 @@
                     },
                     body: JSON.stringify({
                         statusAlerta: etapa.status,
-                        responsavelId: Number(responsavelAtual()),
+                        responsavelId,
                         observacaoRetorno: obs
                     })
                 });
@@ -1071,7 +1059,7 @@
             [
                 "Clique no cabeçalho ou no nome do cartão para ver os detalhes do alerta.",
                 "Clique em \"Etapa\" para mover o alerta entre Conversar e Resolvido.",
-                "Cartões com cabeçalho vermelho e o ícone ! são alertas de risco alto ainda não resolvidos.",
+                "Use o menu Etapa para acompanhar os alertas como pendentes, em conversa ou resolvidos.",
                 "Use a busca e o filtro para encontrar alertas específicos.",
                 "Pressione Esc para fechar qualquer janela."
             ].forEach(t => ul.appendChild(criar("li", "", t)));
@@ -1100,10 +1088,10 @@
         } else if (DEMO) {
             // Modo demonstração: abra alertas.html?demo para testar sem backend
             alertas = [
-                { id: 1, nomeColaborador: "Ana Júlia de Santos", dataAlerta: "2026-10-15", nivelRisco: "MEDIO", statusAlerta: "EM_ANALISE", descricao: "Três faltas sem justificativa nos últimos 7 dias." },
-                { id: 2, nomeColaborador: "Humberto Barreto", dataAlerta: "2026-10-13", nivelRisco: "ALTO", statusAlerta: "PENDENTE", descricao: "Mensagens indicando sofrimento emocional intenso." },
-                { id: 3, nomeColaborador: "Nicolas Kreling", dataAlerta: "2026-10-13", nivelRisco: "BAIXO", statusAlerta: "RESOLVIDO", descricao: "Atraso recorrente no início do turno.", observacaoRetorno: "Conversa realizada, horário ajustado." },
-                { id: 4, nomeColaborador: "Vicenzo Brum", dataAlerta: "2026-10-13", nivelRisco: "MEDIO", statusAlerta: "RESOLVIDO", descricao: "Dificuldade com a escala de horários.", observacaoRetorno: "Escala renegociada." }
+                { id: 1, usuarioId: 1, nomeUsuario: "Ana Júlia de Santos", criadoEm: "2026-10-15T10:00:00", tipoSinal: "FREQUÊNCIA", destinoAlerta: "RH", statusAlerta: "EM_ANALISE", analiseIa: "Foram identificados sinais que precisam de acompanhamento." },
+                { id: 2, usuarioId: 2, nomeUsuario: "Humberto Barreto", criadoEm: "2026-10-13T14:30:00", tipoSinal: "BEM-ESTAR", destinoAlerta: "RH", statusAlerta: "PENDENTE", analiseIa: "A análise identificou sinais que precisam de atenção do RH." },
+                { id: 3, usuarioId: 3, nomeUsuario: "Nicolas Kreling", criadoEm: "2026-10-13T09:15:00", tipoSinal: "FREQUÊNCIA", destinoAlerta: "GERENCIA", statusAlerta: "RESOLVIDO", analiseIa: "Foi identificado um padrão que foi encaminhado para acompanhamento.", observacaoRetorno: "Acompanhamento realizado." },
+                { id: 4, usuarioId: 4, nomeUsuario: "Vicenzo Brum", criadoEm: "2026-10-13T08:45:00", tipoSinal: "ESCALA", destinoAlerta: "RH", statusAlerta: "RESOLVIDO", analiseIa: "A análise identificou uma situação relacionada à escala.", observacaoRetorno: "Escala revisada." }
             ].map(normalizarAlerta);
             carregando = false;
             desenhar();

@@ -1,22 +1,19 @@
 package com.dev.kallopolli.mequijunto.dto;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 public record AlertaResponse(
         Long id,
         Long usuarioId,
         String nomeUsuario,
         String telefoneUsuario,
-        Long conversaId,
-        String conteudo,
         String analiseIa,
-        String nivelRisco,
         String tipoSinal,
         String destinoAlerta,
         String statusAlerta,
-        LocalDateTime criadoEm,
+        OffsetDateTime criadoEm,
         Long responsavelId,
         String nomeResponsavel,
-        LocalDateTime retornoEm,
+        OffsetDateTime retornoEm,
         String observacaoRetorno
 ) {}

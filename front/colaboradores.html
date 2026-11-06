@@ -675,6 +675,16 @@
             return m ? `${m[3]}/${m[2]}/${m[1]}` : s;
         }
 
+        function formatarDataHora(valor) {
+            if (!valor) return "Ainda não houve interação";
+            const data = new Date(valor);
+            if (Number.isNaN(data.getTime())) return String(valor);
+            return data.toLocaleString("pt-BR", {
+                dateStyle: "short",
+                timeStyle: "short"
+            });
+        }
+
         function lerPref(chave, padrao) {
             try {
                 const v = localStorage.getItem("mj_" + chave);
@@ -808,7 +818,9 @@
             info.setAttribute("role", "button");
             info.title = "Ver detalhes";
             info.appendChild(criar("h3", "", c.nome));
-            info.appendChild(criar("p", "", "Data de entrada: " + formatarData(c.dataIngresso)));
+            info.appendChild(criar("p", "", "Data de entrada: " + formatarData(c.dataIngresso)
+                + " · Escala: " + (c.escala || "-")
+                + " · Telefone: " + (c.telefone || "-")));
             info.addEventListener("click", () => abrirDetalhes(c));
             info.addEventListener("keydown", e => {
                 if (e.key === "Enter" || e.key === " ") { e.preventDefault(); abrirDetalhes(c); }
@@ -881,6 +893,8 @@
                 ["Idade", c.idade ?? "-"],
                 ["Gênero", c.genero || "-"],
                 ["Data de entrada", formatarData(c.dataIngresso)],
+                ["Escala", c.escala || "-"],
+                ["Última interação", formatarDataHora(c.ultimaInteracao || c.ultima_interacao)],
                 ["Estado", c.ativo ? "Ativo" : "Inativo"]
             ].forEach(([rotulo, valor]) => {
                 const l = criar("div", "modal-linha");
@@ -944,7 +958,7 @@
                 const res = await fetch(`${API_URL}/${c.id}`, {
                     method: 'PUT',
                     headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ nome: c.nome, telefone: c.telefone, cargo: c.cargo, idade: c.idade, genero: c.genero, dataIngresso: c.dataIngresso, ativo: true })
+                    body: JSON.stringify({ nome: c.nome, telefone: c.telefone, cargo: c.cargo, escala: c.escala || null, idade: c.idade, genero: c.genero, dataIngresso: c.dataIngresso, ativo: true })
                 });
                 if (res.ok) {
                     toast("Colaborador reativado");
@@ -968,6 +982,7 @@
                 { id: "nome", rotulo: "Nome completo*", tipo: "text", req: true, ph: "Ex: João da Silva", cheio: true },
                 { id: "telefone", rotulo: "Telefone*", tipo: "text", req: true, ph: "Ex: 51999999999" },
                 { id: "cargo", rotulo: "Cargo*", tipo: "text", req: true, ph: "Ex: Atendente" },
+                { id: "escala", rotulo: "Escala*", tipo: "escala", req: true, opcoes: ["5x2", "4x3", "12x36"] },
                 { id: "idade", rotulo: "Idade", tipo: "number", ph: "Ex: 25" },
                 { id: "genero", rotulo: "Gênero", tipo: "select", opcoes: ["Masculino", "Feminino", "Outro", "Não informar"] },
                 { id: "dataIngresso", rotulo: "Data de ingresso*", tipo: "date", req: true, cheio: true }
@@ -980,13 +995,21 @@
                 box.appendChild(label);
 
                 let input;
-                if (f.tipo === "select") {
+                if (f.tipo === "select" || f.tipo === "escala") {
                     input = document.createElement("select");
+                    if (f.tipo === "escala") {
+                        const placeholder = criar("option", "", "Selecione a escala");
+                        placeholder.value = "";
+                        placeholder.disabled = true;
+                        placeholder.selected = true;
+                        input.appendChild(placeholder);
+                    }
                     f.opcoes.forEach(o => {
                         const op = criar("option", "", o);
                         op.value = o;
                         input.appendChild(op);
                     });
+                    if (f.tipo === "escala") input.value = "";
                 } else {
                     input = document.createElement("input");
                     input.type = f.tipo;
@@ -1005,7 +1028,7 @@
             if (edit) {
                 const set = (id, v) => { if (v !== null && v !== undefined) form.querySelector("#f_" + id).value = v; };
                 set("nome", edit.nome); set("telefone", edit.telefone); set("cargo", edit.cargo);
-                set("idade", edit.idade); set("genero", edit.genero); set("dataIngresso", edit.dataIngresso);
+                set("escala", edit.escala); set("idade", edit.idade); set("genero", edit.genero); set("dataIngresso", edit.dataIngresso);
             }
 
             const acoes = criar("div", "modal-acoes");
@@ -1028,6 +1051,7 @@
                     nome: val("nome").trim(),
                     telefone: val("telefone").trim(),
                     cargo: val("cargo").trim(),
+                    escala: val("escala").trim(),
                     idade: parseInt(val("idade")) || null,
                     genero: val("genero") === "Não informar" ? null : val("genero"),
                     dataIngresso: val("dataIngresso")
@@ -1040,7 +1064,7 @@
                     if (DEMO) {
                         colaboradores.unshift({
                             id: Date.now(), nome: bodyData.nome, telefone: bodyData.telefone,
-                            cargo: bodyData.cargo, dataIngresso: bodyData.dataIngresso, ativo: true
+                            cargo: bodyData.cargo, escala: bodyData.escala, dataIngresso: bodyData.dataIngresso, ativo: true
                         });
                         fecharModal();
                         desenharLista();
@@ -1154,11 +1178,11 @@
         } else if (DEMO) {
             // Modo demonstração: abra colaboradores.html?demo para testar sem backend
             colaboradores = [
-                { id: 1, nome: "Ana Júlia de Santos", telefone: "51999990001", cargo: "Atendente", dataIngresso: "2026-10-03", ativo: true },
-                { id: 2, nome: "Rayssa Ribeiro Grillo", telefone: "51999990002", cargo: "Cozinheira", dataIngresso: "2026-09-20", ativo: false },
-                { id: 3, nome: "Pedro Moreira da Silva", telefone: "51999990003", cargo: "Atendente", dataIngresso: "2026-09-03", ativo: true },
-                { id: 4, nome: "Humberto Barreto", telefone: "51999990004", cargo: "Caixa", dataIngresso: "2026-08-15", ativo: true },
-                { id: 5, nome: "Nicolas Kreling", telefone: "51999990005", cargo: "Chapeiro", dataIngresso: "2026-08-02", ativo: true }
+                { id: 1, nome: "Ana Júlia de Santos", telefone: "51999990001", cargo: "Atendente", escala: "5x2", dataIngresso: "2026-10-03", ativo: true },
+                { id: 2, nome: "Rayssa Ribeiro Grillo", telefone: "51999990002", cargo: "Cozinheira", escala: "5x2", dataIngresso: "2026-09-20", ativo: false },
+                { id: 3, nome: "Pedro Moreira da Silva", telefone: "51999990003", cargo: "Atendente", escala: "5x2", dataIngresso: "2026-09-03", ativo: true },
+                { id: 4, nome: "Humberto Barreto", telefone: "51999990004", cargo: "Caixa", escala: "5x2", dataIngresso: "2026-08-15", ativo: true },
+                { id: 5, nome: "Nicolas Kreling", telefone: "51999990005", cargo: "Chapeiro", escala: "5x2", dataIngresso: "2026-08-02", ativo: true }
             ];
             carregando = false;
             desenharLista();

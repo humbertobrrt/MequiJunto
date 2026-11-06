@@ -1,8 +1,11 @@
 package com.dev.kallopolli.mequijunto.dto;
 
 public record WhatsAppEventoResponse(
-        Long conversaId,
-        Long mensagemColaboradorId,
-        Long mensagemIaId,
-        boolean alertaCriado
+
+        boolean alertaCriado,
+
+        Long alertaId,
+
+        Long usuarioId
+
 ) {}

@@ -5,6 +5,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import com.dev.kallopolli.mequijunto.converter.EscalaTrabalhoConverter;
+import com.dev.kallopolli.mequijunto.enums.EscalaTrabalho;
 
 @Entity
 @Table(name = "usuarios")
@@ -36,4 +39,12 @@ public class Usuario {
 
     @Column(name = "perfil_acesso", length = 20)
     private String perfilAcesso = "COLABORADOR";
+
+    @Convert(converter = EscalaTrabalhoConverter.class)
+    @Column(name = "escala", length = 10)
+    private EscalaTrabalho escala;
+
+    @Column(name = "ultima_interacao")
+    private OffsetDateTime ultimaInteracao;
+
 }

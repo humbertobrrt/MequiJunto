@@ -52,6 +52,7 @@ public class UsuarioService {
         // Colaboradores não possuem login na plataforma web.
         usuario.setEmail(null);
         usuario.setSenhaHash(null);
+        usuario.setEscala(request.escala());
 
         return paraResponse(usuarioRepository.save(usuario));
     }
@@ -76,6 +77,9 @@ public class UsuarioService {
         usuario.setGenero(request.genero());
         usuario.setDataIngresso(request.dataIngresso());
         usuario.setAtivo(request.ativo());
+        if (request.escala() != null) {
+            usuario.setEscala(request.escala());
+        }
         return paraResponse(usuarioRepository.save(usuario));
     }
 
@@ -102,9 +106,16 @@ public class UsuarioService {
 
     private UsuarioResponse paraResponse(Usuario usuario) {
         return new UsuarioResponse(
-                usuario.getId(), usuario.getNome(), usuario.getTelefone(), usuario.getCargo(),
-                usuario.getAtivo(), usuario.getIdade(), usuario.getGenero(),
-                usuario.getDataIngresso(), usuario.getPerfilAcesso()
+                usuario.getId(),
+                usuario.getNome(),
+                usuario.getTelefone(),
+                usuario.getCargo(),
+                usuario.getEscala(),
+                usuario.getAtivo(),
+                usuario.getIdade(),
+                usuario.getGenero(),
+                usuario.getDataIngresso(),
+                usuario.getPerfilAcesso()
         );
     }
 

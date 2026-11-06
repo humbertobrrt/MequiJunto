@@ -1,18 +1,20 @@
 package com.dev.kallopolli.mequijunto.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 public record WhatsAppEventoRequest(
-        @NotBlank String telefone,
-        String tipo,
-        String conteudo,
-        String audioUrl,
-        String transcricao,
-        String respostaIa,
-        Short notaDia,
-        String analiseIa,
-        String nivelRisco,
+
+        @NotBlank
+        String telefone,
+
+        @NotNull
+        Boolean alertaIdentificado,
+
         String tipoSinal,
-        String destinoAlerta,
-        String statusAlerta
+
+        String analiseIa,
+
+        String destinoAlerta
+
 ) {}
