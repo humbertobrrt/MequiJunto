@@ -31,6 +31,19 @@ build/
 
 ### VS Code ###
 .vscode/
+# Segredos e configuração local
+.env
+.env.*
+!.env.example
+back/.env
+back/.env.*
+!back/.env.example
+
+# Dependências e artefatos locais
+**/node_modules/
+**/target/
+**/.idea/
+**/*.iml
 # Dependências Node.js
 node_modules/
 **/node_modules/
